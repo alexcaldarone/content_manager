@@ -68,7 +68,7 @@ def add_link_from_email():
                       date=date,
                       type=None,
                       category=None)
-        create_item(schema)
+        create_link(schema)
     click.echo("Links inserted successfully!")
 
 @click.command()
