@@ -1,7 +1,7 @@
 import click
 from typing import Optional
 
-from api import Link, Publisher, Entry, create_item, create_publisher, create_entry, get_hashes_from_db, update_publisher_hash
+from api import Link, Publisher, Entry, create_link, create_publisher, create_entry, get_hashes_from_db, update_publisher_hash
 from utils.link_data import get_link_data # importing function to get title
 from utils.email_scraper import read_email_inbox
 from utils.rss_scraper import get_rss_hash, get_rss_entries
@@ -50,7 +50,7 @@ def addLink(link: str, cont_type: Optional[str], category: Optional[str]):
                   date=date,
                   type=cont_type,
                   category=category)
-    create_item(schema)
+    create_link(schema)
     click.echo("Link inserted successfully!")
 # it works! it inserts value in database (it works even if uvicorn server is not running)
 

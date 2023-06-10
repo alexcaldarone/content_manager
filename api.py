@@ -1,6 +1,6 @@
 import mysql.connector
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 import os
 from typing import Optional
@@ -17,30 +17,33 @@ db = mysql.connector.connect(
 )
 
 class Link(BaseModel):
-    link: str
-    title: str
-    date: str
-    type: Optional[str] = None # indicates whether its newspaer article, podcast episode, blog post, paper
-    category: Optional[str] = None # startup, finance, math ...
+    link: str = Field(description="The link pointing to the resource")
+    title: str = Field(description="The title associated to the resource")
+    date: str = Field(description="The date on which the resource was added to the database")
+    type: Optional[str] = Field(default=None, description="Indicated the type of resource (article, video, podcast ...)")
+    category: Optional[str] = Field(default=None, description="The category of content (math, technology, programming, art, ...)")
 
 class Publisher(BaseModel):
-    id: Optional[int]
-    name: str
-    website: str
-    rss: str
-    category: Optional[str]
-    type: Optional[str]
-    hash: Optional[str]
+    id: Optional[int] = Field(description="The unique ID that identifies the publisher")
+    name: str = Field(description="The name of the publisher")
+    website: str = Field(description="Thw publisher's website")
+    rss: str = Field(description="The RSS feed where the publisher's content is uploaded")
+    category: Optional[str] = Field(description="The category of content published (math, technology, programming, art, ...)")
+    type: Optional[str] = Field(default=None, description="Indicated the type of content published (article, video, podcast ...)")
+    hash: Optional[str] = Field(description="The hexadecimal digest of the publisher's RSS feed")
 
 class Entry(BaseModel):
-    title: str
-    link: str
-    publisher: int
-    date: Optional[str]
+    title: str = Field(description="The title of the resouce published by the publisher")
+    link: str = Field(description="The title of the resource published by the publisher")
+    publisher: int = Field(description="The unique ID of the publisher that published this entry")
+    date: Optional[str] = Field(description="The date on which the entry was published")
 
 # Interact with the LINKS table
 @app.get("/links")
-def get_items():
+def get_links():
+    """
+        ## 
+    """
     cursor = db.cursor()
     cursor.execute("SELECT * FROM links")
     items = [{'link': row[0], 'title': row[1], 'date': row[2], "type":row[3], "category":row[4]} 
@@ -48,7 +51,7 @@ def get_items():
     return items
 
 @app.post("/links", status_code=201)
-def create_item(item: Link):
+def create_link(item: Link):
     cursor = db.cursor()
     cursor.execute("INSERT INTO links VALUES (%s, %s, %s, %s, %s)", 
                    (item.link, item.title, item.date, item.type, item.category))
@@ -56,7 +59,7 @@ def create_item(item: Link):
     return {"message": "Item inserted successfully"}
 
 @app.get("/links/{link_title}")
-def get_items_by_title(link_title: str):
+def get_links_by_title(link_title: str):
     # going to use this function to find ALL links with a certain name
     cursor = db.cursor()
     cursor.execute("SELECT * FROM links WHERE title = %s",
@@ -71,7 +74,7 @@ def get_items_by_title(link_title: str):
             "category": row[4]}
 
 @app.put("/links/{old_item_name}")
-def update_item(old_item_name: str, newItem: Link):
+def update_link(old_item_name: str, newItem: Link):
     # get a link with a specific name and then changes its attributes
     # to the one contained in newItem
     cursor = db.cursor()
@@ -94,7 +97,7 @@ def update_item(old_item_name: str, newItem: Link):
     return {"message": "Item updated successfully"}
 
 @app.delete("/links/{link_title}")
-def delete_item(link_title: str):
+def delete_link(link_title: str):
     # with this function we delete a row with a specific title
     cursor = db.cursor()
     cursor.execute("SLEECT * FROM links WHERE title = %s", (link_title, ))
