@@ -6,19 +6,17 @@ from utils.link_data import get_link_data # importing function to get title
 from utils.email_scraper import read_email_inbox
 from utils.rss_scraper import get_rss_hash, get_rss_entries
 
-# This a general purpose cli for my database so that I can communicate with it 
-# through the command line without having to use curl
-# It can interact with multiple tables in the database. At the moment it can do:
-# 1 - Save a link with attributes in the LINKS table
-# 2 - Add links to the LINKS table by reading my email inbox
-# 3 - Add a publisher to the PUBLISHERS table
-# 4 - Retrieve the content published by the publishers and add it to the ENTRY table
-
-
 @click.help_option(
         """
         This script currently inserts links into your personal content
         manager database.
+        It can interact with multiple tables in the databe. At the moment
+        it can:
+        1 - Save a link with attributes in the LINKS table
+        2 - Add links to the LINKS table by reading my email inbox
+        3 - Add a publisher to the PUBLISHERS table
+        4 - Retrieve the content published by the publishers and add it to the ENTRY table
+        
         If you are trying to save a link while also passing the type and 
         category options, remember that the options should go before the
         argument. An example of a correct call to the 'addlink' command is:
@@ -44,6 +42,19 @@ def mycommands():
 @click.option("-c", "--category",
               help="Insert the category of content (startups, programming, art ...)")
 def addLink(link: str, cont_type: Optional[str], category: Optional[str]):
+    """
+    This function adds a link to the LINKS table by calling the corresponding method
+    of the database's api
+
+    Parameters
+    --------------
+        link: str
+            Link we want to save in database
+        cont_type: Optional[str]
+            The type of content the link falls into 
+        category: Optional[str]
+            The category of content the link falls into
+    """
     date, title = get_link_data(link)
     schema = Link(link=link,
                   title=title,
@@ -52,10 +63,13 @@ def addLink(link: str, cont_type: Optional[str], category: Optional[str]):
                   category=category)
     create_link(schema)
     click.echo("Link inserted successfully!")
-# it works! it inserts value in database (it works even if uvicorn server is not running)
 
 @click.command()
 def add_link_from_email():
+    """
+    This function adds links by reading the email inbox. It inserts the links sent 
+    in the day the function is invoked.
+    """
     links = read_email_inbox()
     if len(links) == 0:
         click.echo("There are no links to add to the database")
@@ -81,6 +95,23 @@ def add_link_from_email():
               help="Insert the category of content (startups, programming, art ...)")
 def add_publisher(name: str, website: str, rss: str, category: Optional[str],
                   pub_type: Optional[str]):
+    """
+    This function adds a publisher to the PUBLISHERS table by calling the
+    corresponding method of the database's api
+
+    Parameters
+    --------------
+        name: str
+            The name of the publisher we want to add
+        website: str
+            The website of the publisher we want to add
+        rss: str
+            The link to the publisher's RSS feed
+        category: Optional[str]
+            The category of content published by the publisher
+        type: Optional[str]
+            THe type of content published by the publisher
+    """
     hash = get_rss_hash(rss)
     schema = Publisher(name=name,
                        website=website,
@@ -94,13 +125,18 @@ def add_publisher(name: str, website: str, rss: str, category: Optional[str],
 @click.command()
 @click.option("-v", "--verbose", help="Prints added information")
 def weekly_entry_update(verbose: bool):
-    # as of now i have no system to control that this function is actually run weekly.
-    # it is run weekly from the windows task manager
-    # 1. read hashes
-    # 2. for each publisher check if the hash is the same as the one computed at the moment
-    # 3. if not, then save the hash. then read the entries published in the last week
-    # 4. insert the entries from the last week
-    # 5. update the hash in the publishers table
+    """
+    This function is meant to be run weekly (this can be scheduled by the user).
+    It will read the hashes form the PUBLISHERS table and compare them with the ones
+    calculated at the moment the function is invoked. If they are different that means
+    content has been published, so it is scraped from the rss feed and inserted in the
+    ENTRY table. Finally the hash stored in the database is updated
+
+    Parameters
+    --------------
+        verbose: bool
+            If True prints additional information while the function is being executed.
+    """
     db_hashes = get_hashes_from_db()
     for item in db_hashes:
         current_hash = get_rss_hash(item["rss"])

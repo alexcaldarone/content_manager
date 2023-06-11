@@ -21,6 +21,17 @@ MONTH_REFERENCES = {
 }
 
 def read_email_inbox():
+    """
+    This function reads a gmail inbox, and scrpaes all the links contained in emails
+    that can be found in the "Links" server, which were sent on the day this function is
+    called.
+
+    Returns
+    --------------
+        links: list
+            A list containing the links that were found in the emails sent
+            on the day this function is called.
+    """
     link_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     today = date.today()
     today_str_query = f"{today.day}-{MONTH_REFERENCES[today.month]}-{today.year}"

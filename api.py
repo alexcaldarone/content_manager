@@ -42,7 +42,13 @@ class Entry(BaseModel):
 @app.get("/links")
 def get_links():
     """
-        ## 
+        ## Get links in table
+        This function retrieves all the tuples in the LINKS table
+
+        Returns
+        --------------
+            items: list[dict]
+                List of dictionaries, where each dictionary represents a row of the table
     """
     cursor = db.cursor()
     cursor.execute("SELECT * FROM links")
@@ -52,6 +58,15 @@ def get_links():
 
 @app.post("/links", status_code=201)
 def create_link(item: Link):
+    """
+        ## Create link 
+        This function creates a new row in the LINKS tables
+
+        Paramateres
+        --------------
+            item: Link
+                Link object containing the information we want to add to the table
+    """
     cursor = db.cursor()
     cursor.execute("INSERT INTO links VALUES (%s, %s, %s, %s, %s)", 
                    (item.link, item.title, item.date, item.type, item.category))
@@ -60,7 +75,20 @@ def create_link(item: Link):
 
 @app.get("/links/{link_title}")
 def get_links_by_title(link_title: str):
-    # going to use this function to find ALL links with a certain name
+    """
+        ## Get link by title
+        This function retrieves a row from the LINKS table where the title matches the 
+        one passed as argument
+
+        Parameters
+        --------------
+            link_title: str
+                Title of the link we want to retrieve
+        
+        Returns
+        --------------
+            (dict) A dictionary containing the fetched row
+    """
     cursor = db.cursor()
     cursor.execute("SELECT * FROM links WHERE title = %s",
                    (link_title,))
@@ -75,8 +103,18 @@ def get_links_by_title(link_title: str):
 
 @app.put("/links/{old_item_name}")
 def update_link(old_item_name: str, newItem: Link):
-    # get a link with a specific name and then changes its attributes
-    # to the one contained in newItem
+    """
+        ## Update a link
+        This function updates a row in the LINKS table where the title attribute 
+        matches the one passed as the first argument of this function.
+
+        Parameters
+        --------------
+            old_item_name: str
+                The name of the link whose attributes we want to update
+            newItem: Link
+                Link object containing the updated information
+    """
     cursor = db.cursor()
     cursor.execute("SELECT link, title FROM links WHERE title = %s", (old_item_name, ))
     row = cursor.fetchone()
@@ -98,7 +136,16 @@ def update_link(old_item_name: str, newItem: Link):
 
 @app.delete("/links/{link_title}")
 def delete_link(link_title: str):
-    # with this function we delete a row with a specific title
+    """
+        ## Delete link
+        This function deletes a row from the LINKS table where the title matches
+        the one passed as the functions argument
+
+        Parameters
+        --------------
+            link_title: str
+                Title attribute of the row we want to delete
+    """
     cursor = db.cursor()
     cursor.execute("SLEECT * FROM links WHERE title = %s", (link_title, ))
     row = cursor.fetchone()
@@ -108,21 +155,35 @@ def delete_link(link_title: str):
     db.commit()
     return {"message": "Item deleted successfully"}
 
-
-#
 # Interact with PUBLISERS table
 @app.get("/publishers")
 def get_publishers():
+    """
+        ## Get publishers in table
+        This function retrieves all the tuples in the PUBLISHERS table
+
+        Returns
+        --------------
+            items: list[dict]
+                List of dictionaries, where each dictionary represents a row of the table
+    """
     cursor = db.cursor()
     cursor.execute("SELECT * FROM publishers")
     items = [{"id": row[0], "name": row[1], "website": row[2], "rss": row[3], "type":row[4], "category":row[5], "hash":row[6]} 
              for row in cursor.fetchall()]
     return items
 
-# se non voglio specificare l'id ogni volta devo mettere tra parentesi 
-# dopo publishers i nomi delle colonne sulle quali sto scrivendo
 @app.post("/publishers", status_code=201)
 def create_publisher(publisher: Publisher):
+    """
+        ## Create publisher 
+        This function creates a new row in the PUBLISHERS tables
+
+        Paramateres
+        --------------
+            publisher: Publisher
+                Publisher object containing the information we want to add to the table
+    """
     cursor = db.cursor()
     cursor.execute("INSERT INTO publishers(name, website, rss, type, category, hash) VALUES (%s, %s, %s, %s, %s, %s)", 
                    (publisher.name, publisher.website, publisher.rss, 
@@ -132,6 +193,18 @@ def create_publisher(publisher: Publisher):
 
 @app.put("/publishers/{publisher_name}")
 def update_publisher(publisher_name: str, new_publisher: Publisher):
+    """
+        ## Update a publisher
+        This function updates a row in the PUBLISHERS table where the name attribute 
+        matches the one passed as the first argument of this function.
+
+        Parameters
+        --------------
+            publisher_name: str
+                The name of the publisher whose attributes we want to update
+            new_publisher: Publisher
+                Publisher object containing the updated information
+    """
     # should I reimplement it using publisher id?
     cursor = db.cursor()
     cursor.execute("SELECT * FROM publishers WHERE name = %s", (publisher_name, ))
@@ -156,6 +229,16 @@ def update_publisher(publisher_name: str, new_publisher: Publisher):
 
 @app.delete("/publishers/{publisher_name}")
 def delete_publisher(publisher_name: str):
+    """
+        ## Delete publisher
+        This function deletes a row from the PUBLISHERS table where the name matches
+        the one passed as the functions argument
+
+        Parameters
+        --------------
+            name: str
+                Name attribute of the row we want to delete
+    """
     cursor = db.cursor()
     cursor.execute("SELECT * FROM publishers WHERE name = %s", (publisher_name, ))
     row = cursor.fetchone()
@@ -167,7 +250,16 @@ def delete_publisher(publisher_name: str):
 
 @app.get("/publishers/hash")
 def get_hashes_from_db():
-    # this funciton gets all the hashes stored in the database table
+    """
+        ## Get the publisher hashes
+        This function retrieves all the hashes associated to the publishers' rss feeds
+
+        Returns
+        --------------
+            items: list[dict]
+                A list of dictionaries, where each dictionary contains a publisher's id, name, 
+                rss feed link and hash associated with the rss feed.
+    """
     cursor = db.cursor()
     cursor.execute("SELECT id, name, rss, hash FROM publishers")
     items = [{"id": row[0], "name": row[1], "rss":row[2], "hash": row[3]}
@@ -176,6 +268,17 @@ def get_hashes_from_db():
 
 @app.put("/publishers/{publisher_name}/hash")
 def update_publisher_hash(publisher_id: int, new_hash: str):
+    """
+        ## Update publisher hashes
+        This function updates the publisher's hash with the new one passes as argument.
+
+        Parameters
+        --------------
+            publisher_id: int
+                The unique id that identifies the publisher
+            new_hash: str
+                Update hash associated with the publisher's rss feed
+    """
     cursor = db.cursor()
     cursor.execute("SELECT id, hash FROM publishers WHERE id = %s", (publisher_id, ))
     row = cursor.fetchone()
@@ -186,9 +289,18 @@ def update_publisher_hash(publisher_id: int, new_hash: str):
     db.commit()
     return {"message": "Hash updated correctly"}
 
-# CRUD methods for Entry table
+# Interacts with the Entry table
 @app.get("/entries")
 def get_entries():
+    """
+        ## Get entries in table
+        This function retrieves all the tuples in the ENTRY table
+
+        Returns
+        --------------
+            items: list[dict]
+                List of dictionaries, where each dictionary represents a row of the table
+    """
     cursor = db.cursor()
     cursor.execute("SELECT * FROM entry")
     items = [{"title": row[0], "link": row[1], "publisher": row[2], "date": row[3]}
@@ -197,6 +309,15 @@ def get_entries():
 
 @app.post("/entries", status_code=201)
 def create_entry(entry: Entry):
+    """
+        ## Create entry
+        This function creates a new row in the ENTRY tables
+
+        Paramateres
+        --------------
+            entry: Entry
+                Entry object containing the information we want to add to the table
+    """
     cursor = db.cursor()
     cursor.execute("INSERT INTO entry VALUES (%s, %s, %s, %s)", 
                    (entry.title, entry.link, entry.publisher, entry.date))
@@ -209,6 +330,16 @@ def update_entry(entry_link: str, new_entry: Entry):
 
 @app.delete("/entries/{entry_link}")
 def delete_entry(entry_link: str):
+    """
+        ## Delete entry
+        This function deletes a row from the ENTRY table where the link matches
+        the one passed as the functions argument
+
+        Parameters
+        --------------
+            entry_link: str
+                Link attribute of the row we want to delete
+    """
     cursor = db.cursor()
     cursor.execute("SELECT * FROM entry WHERE link = %s", (entry_link, ))
     row = cursor.fetchone()
