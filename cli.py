@@ -21,12 +21,12 @@ from utils.rss_scraper import get_rss_hash, get_rss_entries
         category options, remember that the options should go before the
         argument. An example of a correct call to the 'addlink' command is:
         
-        python save_link.py addlink -t type_name -c category_name link
+        python cli.py addlink -t type_name -c category_name link
 
         Otherwise if you are not passing any options but just want to save a link
         the correct call is:
 
-        python save_link.py addlink link
+        python cli.py addlink link
 
         """
 )
