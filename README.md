@@ -72,7 +72,9 @@ python cli.py add-publisher -t newsletter -c economics Noahpinion https://noahpi
 ```
 
 3 - Update our ENTRY table on a weekly basis 
+
 This can be done with the weekly_entry_update.bat file. You can schedule the execution using the Task Scheduler.
 
 4 - Daily update of the LINKS table
+
 This feature was born because I found myself reading articles I wanted to save on my phone rather than on my pc. With the add_from_email.bat file (which can also be scheduled with the windows task scheduler) I can check daily the email inbox where I send myself the links I want to save and if there are any emails sent today (as in the day when you run the add_from_email.bat file) it will add the links contained in those emails to the LINKS table.
